@@ -1,0 +1,36 @@
+{
+  "name": "webpack-bundle-doctor",
+  "version": "1.0.0",
+  "description": "Eslint of Bundling",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "webpack",
+    "build:debug": "BUNDLE_DOCTOR_DEBUG=1 webpack"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "keywords": [],
+  "author": "Deepanshu Upadhyay",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "prettier": "^3.8.1",
+    "ts-loader": "^9.5.7",
+    "typescript": "^6.0.2",
+    "webpack": "^5.105.4",
+    "webpack-cli": "^7.0.2"
+  },
+  "peerDependencies": {
+    "webpack": "^5.0.0"
+  }
+}
