@@ -39,11 +39,17 @@ module.exports = {
     ],
   },
 
-  // Externalize webpack and any webpack/* deep imports (e.g. ConcatenatedModule),
-  // otherwise the bundler pulls in webpack internals and the build fails.
+  // Externalize webpack, acorn, and acorn-walk — they are large and already present
+  // at runtime in any webpack project. Bundling them would triple dist size and cause
+  // duplicate-module issues in consuming projects.
   externals: [
     ({ request }, callback) => {
-      if (request === "webpack" || (request && request.startsWith("webpack/"))) {
+      if (
+        request === "webpack" ||
+        (request && request.startsWith("webpack/")) ||
+        request === "acorn" ||
+        request === "acorn-walk"
+      ) {
         return callback(null, "commonjs " + request);
       }
       callback();

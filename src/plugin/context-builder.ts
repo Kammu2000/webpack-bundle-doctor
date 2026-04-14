@@ -1,6 +1,7 @@
 import { Compilation, NormalModule } from "webpack";
 import { BundleDoctorContext, ChunkInfo, ModuleInfo } from "../shared/types.js";
 import { ModuleType } from "../shared/constants.js";
+import { parseSourceForModuleSizes } from "./bundleParser.js";
 import {
   getModuleIdentity,
   getModuleType,
@@ -9,7 +10,6 @@ import {
   getConcatenatedInnerModules,
   getChunkType,
   getModuleUnusedExports,
-  getModuleSizes,
 } from "./utils.js";
 
 export function buildContext(compilation: Compilation): BundleDoctorContext {
@@ -17,6 +17,34 @@ export function buildContext(compilation: Compilation): BundleDoctorContext {
 
   const chunkMap = new Map<string, ChunkInfo>();
   const moduleMap = new Map<string, ModuleInfo>();
+
+  // ── Pass 0: parse each chunk's JS asset for exact post-Terser module sizes ─
+  // Builds a moduleId → {parsed, gzipped} map by finding each module's function
+  // body in the emitted bundle and measuring its byte length directly.
+  // Keys are String(moduleId), matching the moduleMap keys set in Pass 1.
+  // Returns empty map on acorn parse failure; Pass 1.5 proportional fallback
+  // covers any module IDs not found here (scope-hoisted inners, runtime modules).
+  const bundleSizeMap = new Map<string, { parsed: number; gzipped: number }>();
+
+  for (const chunk of chunks) {
+    for (const filename of chunk.files) {
+      if (!filename.endsWith(".js") && !filename.endsWith(".mjs")) continue;
+
+      const asset = compilation.assets[filename];
+      if (!asset) continue;
+      const source = asset.source();
+      if (typeof source !== "string") continue; // binary RawSource — skip
+
+      const isESM = compilation.assetsInfo.get(filename)?.javascriptModule ?? false;
+      const sizes = parseSourceForModuleSizes(source, isESM);
+
+      // First-chunk-wins: webpack emits each module's function body in exactly one
+      // chunk's registry. Other chunks reference it via __webpack_require__, not re-emit it.
+      for (const [id, s] of sizes) {
+        if (!bundleSizeMap.has(id)) bundleSizeMap.set(id, s);
+      }
+    }
+  }
 
   // ── Pass 1: chunk + module maps ──────────────────────────────────────────
   for (const chunk of chunks) {
@@ -46,13 +74,12 @@ export function buildContext(compilation: Compilation): BundleDoctorContext {
           module instanceof NormalModule
             ? (getModuleUnusedExports(module, compilation) ?? undefined)
             : undefined;
-        // Use codeGenerationResults for exact per-module sizes (post-transform, pre-Terser).
-        // More accurate than chunk-level proportional estimation since it reflects the actual
-        // generated code for each module individually.
-        const { parsed: moduleParsed, gzipped: moduleGzipped } = getModuleSizes(
-          module,
-          compilation,
-        );
+        // Look up exact post-Terser sizes from the bundle parse (Pass 0).
+        // undefined when the module is scope-hoisted (no registry entry) or the
+        // bundle was unparseable — Pass 1.5 handles those with proportional estimation.
+        const bundleSizes = bundleSizeMap.get(moduleId);
+        const moduleParsed = bundleSizes?.parsed;
+        const moduleGzipped = bundleSizes?.gzipped;
         moduleMap.set(moduleId, {
           id: moduleId,
           name,
@@ -113,19 +140,15 @@ export function buildContext(compilation: Compilation): BundleDoctorContext {
     chunkMap.set(chunkInfo.id, chunkInfo);
   }
 
-  // ── Pass 1.5: proportional fallback for modules missing codeGenerationResults ─
-  // getModuleSizes() (called in Pass 1) covers most modules via codeGenerationResults.
-  // For the rare cases where it returns undefined (e.g. runtime-only modules, externals
-  // with no JS source), fall back to proportional estimation from the chunk's asset sizes.
+  // ── Pass 1.5: proportional fallback for modules not found in the bundle registry ─
+  // Pass 0 (acorn bundle parsing) gives exact post-Terser sizes for modules that
+  // appear as individual entries in the bundle's module registry. This fallback covers:
+  //   • Scope-hoisted (ConcatenatedModule) inner modules — merged into a single scope,
+  //     no individual registry entry in the output.
+  //   • Runtime / entry modules — webpack inlines them outside the registry.
+  //   • Any chunk whose bundle acorn could not parse (unsupported syntax, binary asset).
   // Assumes a uniform minification ratio within the chunk — less accurate than direct
-  // code generation data, but still better than nothing.
-  //
-  // TODO: for post-Terser exact sizes, implement source map (VLQ) attribution —
-  // parse the .map file from compilation.assets, decode VLQ mappings, and attribute
-  // each byte range in the minified output back to its originating module.
-  // This gives the same accuracy as webpack-bundle-analyzer without needing to
-  // re-parse the bundle. Requires devtool to emit source maps; fall back to this
-  // proportional approach when .map is absent.
+  // bundle measurement, but anchored to the correct post-Terser chunk asset size.
   for (const modInfo of moduleMap.values()) {
     if (modInfo.sizes.parsed != null) continue; // already set by getModuleSizes()
 
