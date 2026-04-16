@@ -1,6 +1,6 @@
 export { WebpackBundleDoctorPlugin } from "./plugin/index.js";
 export { Severity, LogLevel, ModuleType, ChunkType } from "./shared/constants.js";
-export type {
+export {
   WebpackBundleDoctorOptions,
   Issue,
   IssueSeverity,

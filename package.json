@@ -22,6 +22,10 @@
   "author": "Deepanshu Upadhyay",
   "license": "ISC",
   "type": "commonjs",
+  "dependencies": {
+    "acorn": "^8.0.0",
+    "acorn-walk": "^8.0.0"
+  },
   "devDependencies": {
     "@types/node": "^25.5.2",
     "prettier": "^3.8.1",

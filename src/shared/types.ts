@@ -5,15 +5,9 @@ type ChunkId = string;
 
 export type ModuleInfo = {
   id: ModuleId;
-  /**
-   * Human-facing label (webpack stats style). Always set — use this for logs/UI.
-   * From `module.readableIdentifier(requestShortener)`.
-   */
+   // Human-facing label (webpack stats style). Always set — use this for logs/UI.
   name: string;
-  /**
-   * Webpack's internal unique id (verbose). Use when you need an unambiguous key.
-   * From `module.identifier()`.
-   */
+   // Webpack's internal unique id (verbose). Use when you need an unambiguous key.
   identifier: string;
   /** Absolute resource path. Set for NormalModule and for inner modules of a ConcatenatedModule. */
   resource?: string;
@@ -39,7 +33,6 @@ export type ModuleInfo = {
 export type ChunkInfo = {
   id: string;
   name?: string;
-  /** How this chunk is loaded: synchronously, lazily, or hinted via prefetch/preload. */
   chunkType: ChunkType;
   sizes: {
     raw: number;
@@ -49,7 +42,6 @@ export type ChunkInfo = {
   modules: ModuleId[];
 };
 
-/** Alias for the Severity enum — used as the type of Issue.severity and Rule.defaultSeverity. */
 export type IssueSeverity = Severity;
 
 export interface Issue {
@@ -67,7 +59,6 @@ export interface BundleDoctorContext {
   modules: Map<string, ModuleInfo>;
   /** pkgName → (pkgRoot → moduleId[]) — for duplicate detection; resolve IDs via `modules` */
   modulesByPackage: Map<string, Map<string, string[]>>;
-  /** moduleId → outgoing dependency moduleIds — for cycle detection */
   dependencyGraph: Map<string, string[]>;
   getModulesOfChunk(chunkId: string): ModuleInfo[];
   getChunksOfModule(moduleId: string): ChunkInfo[];
@@ -88,7 +79,6 @@ export type RuleConfig = "off" | IssueSeverity | [IssueSeverity, Record<string, 
 
 export interface WebpackBundleDoctorOptions {
   logFile?: string;
-  /** Output path for the JSON reporter. Defaults to "bundle-doctor-report.json" in cwd. */
   jsonFile?: string;
   rules?: Record<string, RuleConfig>;
   reporters?: ("console" | "json")[];

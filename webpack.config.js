@@ -10,14 +10,14 @@ module.exports = {
   optimization: {
     minimize: !debug,
   },
-  target: "node", // VERY IMPORTANT (you're building a Node plugin)
+  target: "node",
   entry: "./src/index.ts",
 
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "index.js",
     library: {
-      type: "commonjs2", // plugin will be required by webpack
+      type: "commonjs2",
     },
     clean: true,
   },
@@ -39,11 +39,16 @@ module.exports = {
     ],
   },
 
-  // Externalize webpack and any webpack/* deep imports (e.g. ConcatenatedModule),
-  // otherwise the bundler pulls in webpack internals and the build fails.
+  // Externalizing webpack, acorn, and acorn-walk — they are large and already present
+  // at runtime in any webpack project
   externals: [
     ({ request }, callback) => {
-      if (request === "webpack" || (request && request.startsWith("webpack/"))) {
+      if (
+        request === "webpack" ||
+        (request && request.startsWith("webpack/")) ||
+        request === "acorn" ||
+        request === "acorn-walk"
+      ) {
         return callback(null, "commonjs " + request);
       }
       callback();
