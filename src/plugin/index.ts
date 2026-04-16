@@ -39,7 +39,9 @@ export class WebpackBundleDoctorPlugin {
           `\n[FAILED] ${new Date().toISOString()}\n${(error as Error)?.stack ?? String(error)}\n`,
         );
       } catch {
-        // ignore
+        logToFile(
+          `\n[FAILED] Compilation failed because of unknown issue\n`,
+        );
       }
     });
   }

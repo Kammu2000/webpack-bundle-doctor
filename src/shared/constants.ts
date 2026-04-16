@@ -25,7 +25,6 @@ export enum ChunkType {
   Preload = "preload",
 }
 
-
 export const PLUGIN_NAME = "WebpackBundleDoctorPlugin";
 export const DISPLAY_NAME = "bundle-doctor";
 export const DEFAULT_LOG_FILE = "bundle-doctor.log";

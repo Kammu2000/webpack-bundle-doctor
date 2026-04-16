@@ -1,7 +1,7 @@
 import { Compilation, NormalModule } from "webpack";
 import { BundleDoctorContext, ChunkInfo, ModuleInfo } from "../shared/types.js";
 import { ModuleType } from "../shared/constants.js";
-import { parseSourceForModuleSizes } from "./bundleParser.js";
+import { parseSourceForModuleSizes } from "./bundleParser/index.js";
 import {
   getModuleIdentity,
   getModuleType,
@@ -140,17 +140,17 @@ export function buildContext(compilation: Compilation): BundleDoctorContext {
     chunkMap.set(chunkInfo.id, chunkInfo);
   }
 
-  // ── Pass 1.5: proportional fallback for modules not found in the bundle registry ─
+  // Pass 1.5: proportional fallback for modules not found in the bundle registry ─
   // Pass 0 (acorn bundle parsing) gives exact post-Terser sizes for modules that
-  // appear as individual entries in the bundle's module registry. This fallback covers:
+  // appear as individual entries in the bundle's module registry. 
+  // This fallback covers:
   //   • Scope-hoisted (ConcatenatedModule) inner modules — merged into a single scope,
   //     no individual registry entry in the output.
   //   • Runtime / entry modules — webpack inlines them outside the registry.
   //   • Any chunk whose bundle acorn could not parse (unsupported syntax, binary asset).
-  // Assumes a uniform minification ratio within the chunk — less accurate than direct
-  // bundle measurement, but anchored to the correct post-Terser chunk asset size.
+  // Assumes a uniform minification ratio within the chunk — less accurate than direct bundle measurement
   for (const modInfo of moduleMap.values()) {
-    if (modInfo.sizes.parsed != null) continue; // already set by getModuleSizes()
+    if (modInfo.sizes.parsed != null) continue; 
 
     let bestChunk: ChunkInfo | null = null;
     for (const chunkId of modInfo.chunks) {
@@ -192,6 +192,7 @@ export function buildContext(compilation: Compilation): BundleDoctorContext {
   }
 
   // ── Pass 3: dependencyGraph ───────────────────────────────────────────────
+  // currently not using this in any rule. will be needed in future
   const dependencyGraph = new Map<string, string[]>();
 
   for (const module of compilation.modules) {

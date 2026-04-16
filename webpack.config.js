@@ -10,14 +10,14 @@ module.exports = {
   optimization: {
     minimize: !debug,
   },
-  target: "node", // VERY IMPORTANT (you're building a Node plugin)
+  target: "node",
   entry: "./src/index.ts",
 
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "index.js",
     library: {
-      type: "commonjs2", // plugin will be required by webpack
+      type: "commonjs2",
     },
     clean: true,
   },
@@ -39,9 +39,8 @@ module.exports = {
     ],
   },
 
-  // Externalize webpack, acorn, and acorn-walk — they are large and already present
-  // at runtime in any webpack project. Bundling them would triple dist size and cause
-  // duplicate-module issues in consuming projects.
+  // Externalizing webpack, acorn, and acorn-walk — they are large and already present
+  // at runtime in any webpack project
   externals: [
     ({ request }, callback) => {
       if (
