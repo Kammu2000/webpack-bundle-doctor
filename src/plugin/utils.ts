@@ -52,10 +52,6 @@ export function getChunkType(chunk: Chunk, _compilation: Compilation): ChunkType
   return ChunkType.Lazy;
 }
 
-/**
- * Returns the inner NormalModules of a ConcatenatedModule (scope-hoisted group),
- * recursively unwrapping any nested ConcatenatedModules.
- */
 export function getConcatenatedInnerModules(module: Module): NormalModule[] {
   if (!(module instanceof ConcatenatedModule)) return [];
   const innerSet = (module as ConcatenatedModuleShape).modules;
@@ -119,7 +115,6 @@ export function getChunkAssetSizes(
   return { parsed, gzipped };
 }
 
-// parsed size is the priority
 export function effectiveSize(sizes: { raw: number; parsed?: number }): number {
   return sizes.parsed ?? sizes.raw;
 }
@@ -160,7 +155,6 @@ export function getModuleUnusedExports(
     for (const name of used) usedExports.add(name);
   }
 
-  // Compare against the full declared export list from webpack's ExportsInfo
   const unused: string[] = [];
   for (const exportInfo of moduleGraph.getExportsInfo(module).orderedExports) {
     if (exportInfo.name && exportInfo.provided === true && !usedExports.has(exportInfo.name)) {

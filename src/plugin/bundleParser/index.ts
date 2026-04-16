@@ -157,7 +157,7 @@ export function parseSourceForModuleSizes(
   try {
     ast = acorn.parse(source, { ecmaVersion: "latest", sourceType: isESM ? "module" : "script" });
   } catch {
-    return sizes; // non-JS or unsupported syntax — Pass 1.5 handles proportionally
+    return sizes;
   }
 
   const boundsById = locateModuleBoundsById(ast);

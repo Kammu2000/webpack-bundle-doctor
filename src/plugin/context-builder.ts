@@ -74,7 +74,6 @@ export function buildContext(compilation: Compilation): BundleDoctorContext {
           module instanceof NormalModule
             ? (getModuleUnusedExports(module, compilation) ?? undefined)
             : undefined;
-        // Look up exact post-Terser sizes from the bundle parse (Pass 0).
         // undefined when the module is scope-hoisted (no registry entry) or the
         // bundle was unparseable — Pass 1.5 handles those with proportional estimation.
         const bundleSizes = bundleSizeMap.get(moduleId);
@@ -93,9 +92,8 @@ export function buildContext(compilation: Compilation): BundleDoctorContext {
 
         // Decompose ConcatenatedModule — register each inner NormalModule individually
         // so package deduplication and size analysis see the real module boundaries.
-        // Inner modules share the outer module's code generation result, so distribute
+        // Inner modules share the outer module's code generation result,
         // the outer's parsed/gzipped proportionally among inners by raw size — tighter
-        // scope than chunk-level proportional since all inners share the same transformation.
         const innerModules = getConcatenatedInnerModules(module);
         const { requestShortener } = compilation.runtimeTemplate;
         const outerRaw = module.size();
@@ -141,8 +139,6 @@ export function buildContext(compilation: Compilation): BundleDoctorContext {
   }
 
   // Pass 1.5: proportional fallback for modules not found in the bundle registry ─
-  // Pass 0 (acorn bundle parsing) gives exact post-Terser sizes for modules that
-  // appear as individual entries in the bundle's module registry. 
   // This fallback covers:
   //   • Scope-hoisted (ConcatenatedModule) inner modules — merged into a single scope,
   //     no individual registry entry in the output.

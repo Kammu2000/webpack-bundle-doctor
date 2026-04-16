@@ -75,7 +75,6 @@ export function isConcatContainer(n: acorn.Node | null | undefined): boolean {
   return call.arguments.length === 1 && isArrayContainer(call.arguments[0] as acorn.Node);
 }
 
-/** Any recognised form of module container. */
 export function isModuleContainer(n: acorn.Node | null | undefined): boolean {
   return isObjectContainer(n) || isArrayContainer(n) || isConcatContainer(n);
 }
@@ -116,7 +115,6 @@ export function isWebWorkerChunkCall(n: acorn.CallExpression): boolean {
   );
 }
 
-/** Given a recognised module container node, returns a ModuleBoundsById for each factory. */
 export function buildModuleBoundsById(node: acorn.Node): ModuleBoundsById {
   const out: ModuleBoundsById = {};
 

@@ -111,7 +111,7 @@ export class BundleDoctorLogger {
       .join("  ");
     this.line(`  modules total:  ${context.modules.size}  (${modTypeSummary})`);
 
-    // Size overview — top 5 chunks by parsed/raw
+    // Size overview — top N chunks by parsed/raw
     this.line();
     this.line("[SIZE OVERVIEW]");
     this.line("  largest chunks (parsed size preferred):");
