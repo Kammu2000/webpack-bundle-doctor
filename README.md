@@ -236,4 +236,4 @@ module.exports = {
 
 ## License
 
-Copyright (c) 2026 Deepanshu Upadhyay. Licensed under the [ISC License](LICENSE).
+Copyright (c) 2026 Deepanshu Upadhyay. Licensed under the [MIT License](LICENSE).
